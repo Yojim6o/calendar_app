@@ -1,0 +1,17 @@
+.calendar-table {
+    width: 900px;
+}
+
+.calendar-header {
+    width: 100%;
+}
+
+.calendar-day {
+    width: 14.2857142857%;
+    height: 60px;
+    vertical-align: top;
+}
+
+.hasDay {
+    border: 1px solid black;
+}
