@@ -20,20 +20,20 @@ class Calendar {
         const startingDay = firstDay.getDay();
         const monthLength = daysInMonth[this.month];
 
-        let schedule = new Schedule(monthLength, startingDay);
-        let container = document.getElementById(node);
-        let cal = document.createElement('table');
+        const schedule = new Schedule(monthLength, startingDay);
+        const container = document.getElementById(node);
+        const cal = document.createElement('table');
             cal.className = 'calendar-table';
-        let headerRow = document.createElement('tr');
-        let calHeader = document.createElement('th');
+        const headerRow = document.createElement('tr');
+        const calHeader = document.createElement('th');
             calHeader.colSpan = '7';
-        let monthName = monthLabels[this.month];
+        const monthName = monthLabels[this.month];
             calHeader.innerHTML = monthName + '&nbsp;' + this.year;
-        let weekdayRow = document.createElement('tr');
+        const weekdayRow = document.createElement('tr');
             weekdayRow.className = "calendar-header";
 
         weekdayLabels.map(day => {
-            let weekdayCol = document.createElement('td');
+            const weekdayCol = document.createElement('td');
                 weekdayCol.className = 'calendar-header-day';
                 weekdayCol.innerHTML = day;
             weekdayRow.appendChild(weekdayCol);
@@ -43,7 +43,6 @@ class Calendar {
 
         cal.appendChild(headerRow);
         cal.appendChild(weekdayRow);
-
         schedule.generateHTML(cal);
 
         container.appendChild(cal);
@@ -60,13 +59,20 @@ class Schedule {
         let dayCount = 1;
 
         for (var i = 0; i < 6; i++) {
-            let weekRow = document.createElement('tr');
+            const weekRow = document.createElement('tr');
 
             for (var j = 0; j <= 6; j++) {
-                let day = document.createElement('td');
+                const day = document.createElement('td');
                 if (dayCount <= this.monthLength && (i > 0 || j >= this.startingDay)) {
-                    day.className = 'calendar-day has-day';
-                    day.innerHTML = dayCount;
+                    day.className = 'calendar-day has-day'
+                        + (dayCount === today.getDate() ? ' gray' : '' );
+                    // day.innerHTML = new DayStuff(dayCount).generateHTML();
+                    day.id = 'day-' + dayCount;
+                    day.onclick = function() {
+                        console.log(this.id);
+                    };
+                    const dayStuff = new DayStuff(dayCount);
+                    dayStuff.generateHTML(day);
                     weekRow.appendChild(day);
                     dayCount++;
                 } else {
@@ -81,5 +87,22 @@ class Schedule {
                 break;
             }
         }
+    }
+}
+
+class DayStuff {
+    constructor(day) {
+        this.day = day;
+    }
+
+    generateHTML(node) {
+        const dayContainer = document.createElement('div');
+            dayContainer.innerHTML = this.day;
+        const apptContainer = document.createElement('div');
+            apptContainer.className = "appt-container";
+            apptContainer.innerHTML = "No Appointments";
+
+        dayContainer.appendChild(apptContainer);
+        node.appendChild(dayContainer);
     }
 }
