@@ -58,11 +58,10 @@ class Schedule {
 
     generateHTML(node) {
         let dayCount = 1;
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 6; i++) {
             let weekRow = document.createElement('tr');
             for (var j = 0; j <= 6; j++) {
                 let day = document.createElement('td');
-                    day.className = 'calendar-day';
 
                 console.log("daycount", dayCount);
                 console.log("monthLength", this.monthLength);
@@ -70,14 +69,14 @@ class Schedule {
                 console.log("j", j);
                 console.log("startingDay", this.startingDay);
 
-
                 if (dayCount <= this.monthLength && (i > 0 || j >= this.startingDay)) {
-                    debugger;
+                    day.className = 'calendar-day has-day';
+                    day.innerHTML = dayCount;
                     weekRow.appendChild(day);
                     console.log("weekrow is now:", weekRow);
                     dayCount++;
                 } else {
-                    debugger;
+                    day.className = 'calendar-day';
                     weekRow.appendChild(day);
                     console.log("weekrow is now:", weekRow);
                     console.log("day was not appended");
