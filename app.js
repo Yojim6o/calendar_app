@@ -173,18 +173,33 @@ class DayModal {
             dayTitle.className = 'day-title';
             dayTitle.innerHTML = 'Appointments';
 
-        const appt = new Appointment();
+        const apptList = new AppointmentList();
 
         dayModal.appendChild(exitDiv);
         dayModal.appendChild(dayTitle);
-        appt.generateHTML(dayModal);
+        apptList.generateHTML(dayModal);
 
         node.appendChild(dayModal);
     }
 }
 
-class Appointments {
+class AppointmentList {
+    constructor() {
+        this.apptList = [];
+    }
 
+    generateHTML(node) {
+        const listDiv = document.createElement('div');
+        const apptForm = new Appointment();
+
+        this.apptList.map(appt => {
+            const appointment = new Appointment(appt.name, appt.start, appt.end);
+            appointment.generateHTML(listDiv);
+        });
+
+        apptForm.generateHTML(listDiv);
+        node.appendChild(listDiv);
+    }
 }
 
 class Appointment {
@@ -261,7 +276,6 @@ class Appointment {
         for (var i = 0; i <= 24; i++) {
             const startTimeOption = document.createElement('option');
                 startTimeOption.value = i;
-
             this.createTimeOption(startTimeOption, i);
 
             startTimeSelect.appendChild(startTimeOption);
