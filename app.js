@@ -58,34 +58,25 @@ class Schedule {
 
     generateHTML(node) {
         let dayCount = 1;
+
         for (var i = 0; i < 6; i++) {
             let weekRow = document.createElement('tr');
+
             for (var j = 0; j <= 6; j++) {
                 let day = document.createElement('td');
-
-                console.log("daycount", dayCount);
-                console.log("monthLength", this.monthLength);
-                console.log("i", i);
-                console.log("j", j);
-                console.log("startingDay", this.startingDay);
-
                 if (dayCount <= this.monthLength && (i > 0 || j >= this.startingDay)) {
                     day.className = 'calendar-day has-day';
                     day.innerHTML = dayCount;
                     weekRow.appendChild(day);
-                    console.log("weekrow is now:", weekRow);
                     dayCount++;
                 } else {
                     day.className = 'calendar-day';
                     weekRow.appendChild(day);
-                    console.log("weekrow is now:", weekRow);
-                    console.log("day was not appended");
                 }
-
-                console.log("---------");
-
             }
+
             node.appendChild(weekRow);
+
             if (dayCount > this.monthLength) {
                 break;
             }
