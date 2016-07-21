@@ -9,6 +9,7 @@ const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 const today = new Date();
 const todayDate = today.getDate();
+const modalsContainer = document.getElementById('modals-container');
 
 class Calendar {
     constructor(month, year) {
@@ -72,9 +73,6 @@ class Schedule {
 
                     if (dayCount >= todayDate) {
                         const dayStuff = new DayStuff(dayCount);
-                        day.onclick = function() {
-                            console.log(this.id);
-                        };
                         dayStuff.generateHTML(day);
                     } else {
                         day.innerHTML = dayCount;
@@ -104,17 +102,46 @@ class DayStuff {
     }
 
     generateHTML(node) {
+        const day = this.day;
         const dayContainer = document.createElement('div');
             dayContainer.innerHTML = this.day;
 
-
         const apptContainer = document.createElement('div');
-            apptContainer.className = "appt-container";
-            apptContainer.innerHTML = "No Appointments";
+            apptContainer.className = 'appt-container';
+            apptContainer.innerHTML = 'No Appointments';
+
+        const apptModal = new DayModal(this.day);
+
+        node.onclick = function() {
+            const modalID = 'dayModal' + day;
+            const dayModal = document.getElementById(modalID);
+            console.log(day);
+            modalsContainer.className = 'modals-container';
+            modalsContainer.onclick = function() {
+                modalsContainer.className = 'modals-container display-none';
+                dayModal.className = 'day-modal display-none'
+            }
+            dayModal.className = 'day-modal';
+        };
 
         dayContainer.appendChild(apptContainer);
 
+        apptModal.generateHTML(modalsContainer);
 
         node.appendChild(dayContainer);
+    }
+}
+
+class DayModal {
+    constructor(day) {
+        this.day = day;
+    }
+
+    generateHTML(node) {
+        const dayModal = document.createElement('div');
+            dayModal.className = 'day-modal display-none';
+            dayModal.setAttribute('id','dayModal' + this.day);
+            dayModal.innerHTML = this.day;
+        node.appendChild(dayModal);
     }
 }
