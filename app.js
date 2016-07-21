@@ -8,6 +8,7 @@ const monthLabels = ['January', 'February', 'March', 'April',
 const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 const today = new Date();
+const todayDate = today.getDate();
 
 class Calendar {
     constructor(month, year) {
@@ -64,16 +65,22 @@ class Schedule {
             for (var j = 0; j <= 6; j++) {
                 const day = document.createElement('td');
                 if (dayCount <= this.monthLength && (i > 0 || j >= this.startingDay)) {
-                    day.className = 'calendar-day has-day'
-                        + (dayCount === today.getDate() ? ' gray' : '' );
-                    // day.innerHTML = new DayStuff(dayCount).generateHTML();
-                    day.id = 'day-' + dayCount;
-                    day.onclick = function() {
-                        console.log(this.id);
-                    };
                     const dayStuff = new DayStuff(dayCount);
+
+                    day.className = 'calendar-day has-day'
+                        + (dayCount === todayDate ? ' gray' : '' )
+                        + (dayCount >= todayDate ? ' pointer hover' : '');
+                    day.id = 'day-' + dayCount;
+
+                    if (dayCount >= todayDate) {
+                        day.onclick = function() {
+                            console.log(this.id);
+                        };
+                    }
+
                     dayStuff.generateHTML(day);
                     weekRow.appendChild(day);
+
                     dayCount++;
                 } else {
                     day.className = 'calendar-day';
@@ -98,11 +105,15 @@ class DayStuff {
     generateHTML(node) {
         const dayContainer = document.createElement('div');
             dayContainer.innerHTML = this.day;
-        const apptContainer = document.createElement('div');
-            apptContainer.className = "appt-container";
-            apptContainer.innerHTML = "No Appointments";
 
-        dayContainer.appendChild(apptContainer);
+        if (this.day >= todayDate) {
+            const apptContainer = document.createElement('div');
+                apptContainer.className = "appt-container";
+                apptContainer.innerHTML = "No Appointments";
+
+            dayContainer.appendChild(apptContainer);
+        }
+
         node.appendChild(dayContainer);
     }
 }

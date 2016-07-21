@@ -16,9 +16,12 @@
     border: 1px solid black;
 }
 
-.has-day:hover {
-    background-color: lightblue;
+.pointer {
     cursor: pointer;
+}
+
+.hover:hover {
+    background-color: lightblue;
 }
 
 .gray {
