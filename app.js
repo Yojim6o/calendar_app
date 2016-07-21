@@ -65,20 +65,21 @@ class Schedule {
             for (var j = 0; j <= 6; j++) {
                 const day = document.createElement('td');
                 if (dayCount <= this.monthLength && (i > 0 || j >= this.startingDay)) {
-                    const dayStuff = new DayStuff(dayCount);
-
                     day.className = 'calendar-day has-day'
                         + (dayCount === todayDate ? ' gray' : '' )
                         + (dayCount >= todayDate ? ' pointer hover' : '');
                     day.id = 'day-' + dayCount;
 
                     if (dayCount >= todayDate) {
+                        const dayStuff = new DayStuff(dayCount);
                         day.onclick = function() {
                             console.log(this.id);
                         };
+                        dayStuff.generateHTML(day);
+                    } else {
+                        day.innerHTML = dayCount;
                     }
 
-                    dayStuff.generateHTML(day);
                     weekRow.appendChild(day);
 
                     dayCount++;
@@ -106,13 +107,13 @@ class DayStuff {
         const dayContainer = document.createElement('div');
             dayContainer.innerHTML = this.day;
 
-        if (this.day >= todayDate) {
-            const apptContainer = document.createElement('div');
-                apptContainer.className = "appt-container";
-                apptContainer.innerHTML = "No Appointments";
 
-            dayContainer.appendChild(apptContainer);
-        }
+        const apptContainer = document.createElement('div');
+            apptContainer.className = "appt-container";
+            apptContainer.innerHTML = "No Appointments";
+
+        dayContainer.appendChild(apptContainer);
+
 
         node.appendChild(dayContainer);
     }
