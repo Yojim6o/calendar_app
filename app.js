@@ -16,6 +16,11 @@ class Calendar {
     }
 
     generateHTML(node) {
+        const firstDay = new Date(this.year, this.month, 1);
+        const startingDay = firstDay.getDay();
+        const monthLength = daysInMonth[this.month];
+
+        let schedule = new Schedule(monthLength, startingDay);
         let container = document.getElementById(node);
         let cal = document.createElement('table');
             cal.className = 'calendar-table';
@@ -35,8 +40,56 @@ class Calendar {
         });
 
         headerRow.appendChild(calHeader);
+
         cal.appendChild(headerRow);
         cal.appendChild(weekdayRow);
+
+        schedule.generateHTML(cal);
+
         container.appendChild(cal);
+    }
+}
+
+class Schedule {
+    constructor(monthLength, startingDay) {
+        this.monthLength = monthLength;
+        this.startingDay = startingDay;
+    }
+
+    generateHTML(node) {
+        let dayCount = 1;
+        for (var i = 0; i < 5; i++) {
+            let weekRow = document.createElement('tr');
+            for (var j = 0; j <= 6; j++) {
+                let day = document.createElement('td');
+                    day.className = 'calendar-day';
+
+                console.log("daycount", dayCount);
+                console.log("monthLength", this.monthLength);
+                console.log("i", i);
+                console.log("j", j);
+                console.log("startingDay", this.startingDay);
+
+
+                if (dayCount <= this.monthLength && (i > 0 || j >= this.startingDay)) {
+                    debugger;
+                    weekRow.appendChild(day);
+                    console.log("weekrow is now:", weekRow);
+                    dayCount++;
+                } else {
+                    debugger;
+                    weekRow.appendChild(day);
+                    console.log("weekrow is now:", weekRow);
+                    console.log("day was not appended");
+                }
+
+                console.log("---------");
+
+            }
+            node.appendChild(weekRow);
+            if (dayCount > this.monthLength) {
+                break;
+            }
+        }
     }
 }

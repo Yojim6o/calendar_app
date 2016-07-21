@@ -12,6 +12,10 @@
     vertical-align: top;
 }
 
+.calendar-day {
+    border: 1px solid black;
+}
+
 .hasDay {
     border: 1px solid black;
 }
