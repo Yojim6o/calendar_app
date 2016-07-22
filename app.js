@@ -1,4 +1,3 @@
-
 const weekdayLabels = [
     'Sunday',
     'Monday',
@@ -135,7 +134,7 @@ class DayStuff {
         node.onclick = function() {
             const modalID = 'dayModal' + day;
             const dayModal = document.getElementById(modalID);
-            console.log(day);
+
             calContainer.className = 'blur';
             modalsContainer.className = 'modals-container';
             dayModal.className = 'day-modal';
@@ -152,7 +151,7 @@ class DayStuff {
 class DayModal {
     constructor(day) {
         this.day = day;
-        this.appts = [];
+        this.apptList = [];
     }
 
     generateHTML(node) {
@@ -173,7 +172,7 @@ class DayModal {
             dayTitle.className = 'day-title';
             dayTitle.innerHTML = 'Appointments';
 
-        const apptList = new AppointmentList();
+        const apptList = new AppointmentList(this.apptList, this.day);
 
         dayModal.appendChild(exitDiv);
         dayModal.appendChild(dayTitle);
@@ -184,16 +183,18 @@ class DayModal {
 }
 
 class AppointmentList {
-    constructor() {
-        this.apptList = [];
+    constructor(list, day) {
+        this.apptList = list;
+        this.day = day;
     }
 
     generateHTML(node) {
+        const scope = this;
         const listDiv = document.createElement('div');
-        const apptForm = new Appointment();
+        const apptForm = new Appointment(null, null, null, this.apptList, this.day);
 
         this.apptList.map(appt => {
-            const appointment = new Appointment(appt.name, appt.start, appt.end);
+            const appointment = new Appointment(appt.name, appt.start, appt.end, scope.apptList, scope.day);
             appointment.generateHTML(listDiv);
         });
 
@@ -203,58 +204,61 @@ class AppointmentList {
 }
 
 class Appointment {
-    constructor(name, start, end) {
+    constructor(name, start, end, list, day) {
         this.name = name;
         this.start = start;
         this.end = end;
+        this.list = list;
+        this.day = day;
+    }
+
+    handleApptSubmit(form) {
+        const title = form.childNodes[1].value;
+        const startTime = form.childNodes[3].value;
+        const endTime = form.childNodes[5].value;
+
+        if (startTime >= endTime || title === '') {
+            alert("Invalid Entry");
+        } else {
+            this.list.push({
+                name: title,
+                start: startTime,
+                end: endTime
+            });
+
+            this.updateList();
+        }
+    }
+
+    updateList() {
+        const modalID = 'dayModal' + this.day;
+        const dayModal = document.getElementById(modalID);
+        const newList = new AppointmentList(this.list, this.day);
+
+        dayModal.childNodes[2].remove();
+
+        newList.generateHTML(dayModal);
     }
 
     createTimeOption(node, i) {
-        switch (i) {
-            case 0:
-                node.innerHTML = '12 AM';
-                break;
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-                node.innerHTML = i + ' AM';
-                break;
-            case 12:
-                node.innerHTML = '12 PM';
-                break;
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:
-            case 19:
-            case 20:
-            case 21:
-            case 22:
-            case 23:
-                node.innerHTML = (i-12) + ' PM';
-                break;
-            case 24:
-                node.innerHTML = '11:59 PM';
-                break;
+        if (i === 0) {
+            node.innerHTML = '12 AM';
+        } else if (i < 12) {
+            node.innerHTML = i + ' AM';
+        } else if (i === 12) {
+            node.innerHTML = '12 PM';
+        } else if (i < 24) {
+            node.innerHTML = (i - 12) + ' PM';
+        } else {
+            node.innerHTML = '11:59 PM';
         }
     }
 
     generateHTML(node) {
+        const scope = this;
         const appt = document.createElement('form');
             appt.className = 'appt-form';
-            appt.action = function() {
-
-            };
+            appt.action = '#';
 
         const apptNameHeading = document.createElement('div');
             apptNameHeading.className = 'ib ml10';
@@ -290,7 +294,7 @@ class Appointment {
             endTimeSelect.value = this.end || '';
         for (var j = 0; j <= 24; j++) {
             const endTimeOption = document.createElement('option');
-                endTimeOption.value = i;
+                endTimeOption.value = j;
 
             this.createTimeOption(endTimeOption, j);
 
@@ -299,8 +303,10 @@ class Appointment {
 
         const submitButton = document.createElement('input');
             submitButton.className = 'ib ml10';
-            submitButton.type = 'submit';
-            submitButton.value = 'Submit';
+            submitButton.type = 'button';
+            submitButton.value = 'Save';
+            submitButton.name = 'submit';
+            submitButton.onclick = function(){scope.handleApptSubmit(this.form)};
 
         appt.appendChild(apptNameHeading);
         appt.appendChild(nameInput);
