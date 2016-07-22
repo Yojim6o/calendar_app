@@ -118,6 +118,8 @@ class Schedule {
 class DayStuff {
     constructor(day) {
         this.day = day;
+        this.apptList = [];
+        this.conflicts = [];
     }
 
     generateHTML(node) {
@@ -126,10 +128,11 @@ class DayStuff {
             dayContainer.innerHTML = this.day;
 
         const apptContainer = document.createElement('div');
+            apptContainer.id = 'dayStuff' + this.day;
             apptContainer.className = 'appt-container';
             apptContainer.innerHTML = 'No Appointments';
 
-        const apptModal = new DayModal(this.day);
+        const apptModal = new DayModal(this.day, this.apptList, this.conflicts);
 
         node.onclick = function() {
             const modalID = 'dayModal' + day;
@@ -149,9 +152,10 @@ class DayStuff {
 }
 
 class DayModal {
-    constructor(day) {
+    constructor(day, list, conflicts) {
         this.day = day;
-        this.apptList = [];
+        this.apptList = list;
+        this.conflicts = conflicts
     }
 
     generateHTML(node) {
@@ -172,7 +176,7 @@ class DayModal {
             dayTitle.className = 'day-title';
             dayTitle.innerHTML = 'Appointments';
 
-        const apptList = new AppointmentList(this.apptList, this.day);
+        const apptList = new AppointmentList(this.apptList, this.day, this.conflicts);
 
         dayModal.appendChild(exitDiv);
         dayModal.appendChild(dayTitle);
@@ -183,18 +187,19 @@ class DayModal {
 }
 
 class AppointmentList {
-    constructor(list, day) {
+    constructor(list, day, conflicts) {
         this.apptList = list;
         this.day = day;
+        this.conflicts = conflicts;
     }
 
     generateHTML(node) {
         const scope = this;
         const listDiv = document.createElement('div');
-        const apptForm = new Appointment(null, null, null, this.apptList, this.day);
+        const apptForm = new Appointment(null, null, null, this.apptList, this.day, this.conflicts);
 
         this.apptList.map(appt => {
-            const appointment = new Appointment(appt.name, appt.start, appt.end, scope.apptList, scope.day);
+            const appointment = new Appointment(appt.name, appt.start, appt.end, scope.apptList, scope.day, scope.conflicts);
             appointment.generateHTML(listDiv);
         });
 
@@ -204,18 +209,19 @@ class AppointmentList {
 }
 
 class Appointment {
-    constructor(name, start, end, list, day) {
+    constructor(name, start, end, list, day, conflicts) {
         this.name = name;
         this.start = start;
         this.end = end;
         this.list = list;
         this.day = day;
+        this.conflicts = conflicts;
     }
 
     handleApptSubmit(form) {
         const title = form.childNodes[1].value;
-        const startTime = form.childNodes[3].value;
-        const endTime = form.childNodes[5].value;
+        const startTime = Number(form.childNodes[3].value);
+        const endTime = Number(form.childNodes[5].value);
 
         if (startTime >= endTime || title === '') {
             alert("Invalid Entry");
@@ -230,12 +236,26 @@ class Appointment {
         }
     }
 
+    keysrt(key,desc) {
+        return function(a,b){
+            return desc ? ~~(a[key] < b[key]) : ~~(a[key] > b[key]);
+        }
+    }
+
     updateList() {
+        const scope = this;
+        const dayStuffID = 'dayStuff' + this.day;
         const modalID = 'dayModal' + this.day;
         const dayModal = document.getElementById(modalID);
-        const newList = new AppointmentList(this.list, this.day);
+        const dayStuff = document.getElementById(dayStuffID);
+        const newList = new AppointmentList(this.list, this.day, this.conflicts);
+        const listLength = this.list.length;
 
+        dayStuff.innerHTML = listLength + (listLength === 1 ? ' Appointment' : ' Appointments');
         dayModal.childNodes[2].remove();
+
+
+        this.list.sort(this.keysrt('start'));
 
         newList.generateHTML(dayModal);
     }
@@ -280,6 +300,11 @@ class Appointment {
         for (var i = 0; i <= 24; i++) {
             const startTimeOption = document.createElement('option');
                 startTimeOption.value = i;
+
+            if (Number(this.start) === i) {
+                startTimeOption.selected = true;
+            }
+
             this.createTimeOption(startTimeOption, i);
 
             startTimeSelect.appendChild(startTimeOption);
@@ -295,6 +320,10 @@ class Appointment {
         for (var j = 0; j <= 24; j++) {
             const endTimeOption = document.createElement('option');
                 endTimeOption.value = j;
+
+            if (Number(this.end) === j) {
+                endTimeOption.selected = true;
+            }
 
             this.createTimeOption(endTimeOption, j);
 
