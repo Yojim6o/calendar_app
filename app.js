@@ -155,7 +155,7 @@ class DayModal {
     constructor(day, list, conflicts) {
         this.day = day;
         this.apptList = list;
-        this.conflicts = conflicts
+        this.conflicts = conflicts;
     }
 
     generateHTML(node) {
@@ -197,11 +197,13 @@ class AppointmentList {
         const scope = this;
         const listDiv = document.createElement('div');
         const apptForm = new Appointment(null, null, null, this.apptList, this.day, this.conflicts);
+        const apptListLength = this.apptList.length;
 
-        this.apptList.map(appt => {
-            const appointment = new Appointment(appt.name, appt.start, appt.end, scope.apptList, scope.day, scope.conflicts);
+        for (var i = 0; i < apptListLength; i++) {
+            const appt = this.apptList[i];
+            const appointment = new Appointment(appt.name, appt.start, appt.end, this.apptList, this.day, this.conflicts, i);
             appointment.generateHTML(listDiv);
-        });
+        }
 
         apptForm.generateHTML(listDiv);
         node.appendChild(listDiv);
@@ -209,16 +211,17 @@ class AppointmentList {
 }
 
 class Appointment {
-    constructor(name, start, end, list, day, conflicts) {
+    constructor(name, start, end, list, day, conflicts, index) {
         this.name = name;
         this.start = start;
         this.end = end;
         this.list = list;
         this.day = day;
         this.conflicts = conflicts;
+        this.index = index;
     }
 
-    handleApptSubmit(form) {
+    handleApptSubmit(form, appt) {
         const title = form.childNodes[1].value;
         const startTime = Number(form.childNodes[3].value);
         const endTime = Number(form.childNodes[5].value);
@@ -226,6 +229,10 @@ class Appointment {
         if (startTime >= endTime || title === '') {
             alert("Invalid Entry");
         } else {
+            if (this.index > -1) {
+                this.list.splice(this.index, 1);
+            }
+
             this.list.push({
                 name: title,
                 start: startTime,
@@ -236,9 +243,9 @@ class Appointment {
         }
     }
 
-    keysrt(key,desc) {
+    keysrt(key) {
         return function(a,b){
-            return desc ? ~~(a[key] < b[key]) : ~~(a[key] > b[key]);
+            return ~~(a[key] > b[key]);
         }
     }
 
@@ -253,7 +260,6 @@ class Appointment {
 
         dayStuff.innerHTML = listLength + (listLength === 1 ? ' Appointment' : ' Appointments');
         dayModal.childNodes[2].remove();
-
 
         this.list.sort(this.keysrt('start'));
 
@@ -301,7 +307,7 @@ class Appointment {
             const startTimeOption = document.createElement('option');
                 startTimeOption.value = i;
 
-            if (Number(this.start) === i) {
+            if (this.start === i) {
                 startTimeOption.selected = true;
             }
 
@@ -321,7 +327,7 @@ class Appointment {
             const endTimeOption = document.createElement('option');
                 endTimeOption.value = j;
 
-            if (Number(this.end) === j) {
+            if (this.end === j) {
                 endTimeOption.selected = true;
             }
 
@@ -330,20 +336,30 @@ class Appointment {
             endTimeSelect.appendChild(endTimeOption);
         }
 
-        const submitButton = document.createElement('input');
-            submitButton.className = 'ib ml10';
-            submitButton.type = 'button';
-            submitButton.value = 'Save';
-            submitButton.name = 'submit';
-            submitButton.onclick = function(){scope.handleApptSubmit(this.form)};
-
         appt.appendChild(apptNameHeading);
         appt.appendChild(nameInput);
         appt.appendChild(startTimeHeading);
         appt.appendChild(startTimeSelect);
         appt.appendChild(endTimeHeading);
         appt.appendChild(endTimeSelect);
-        appt.appendChild(submitButton);
+
+        if (!this.name) {
+            const submitButton = document.createElement('input');
+                submitButton.className = 'ib ml10';
+                submitButton.type = 'button';
+                submitButton.value = 'Save';
+                submitButton.name = 'submit';
+                submitButton.onclick = function(){scope.handleApptSubmit(this.form)};
+            appt.appendChild(submitButton);
+        } else {
+            const updateButton = document.createElement('input');
+                updateButton.className = 'ib ml10';
+                updateButton.type = 'button';
+                updateButton.value = 'Update';
+                updateButton.name = 'update';
+                updateButton.onclick = function(){scope.handleApptSubmit(this.form)};
+            appt.appendChild(updateButton);
+        }
 
         node.appendChild(appt);
     }
