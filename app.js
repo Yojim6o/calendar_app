@@ -289,7 +289,8 @@ class Appointment {
         const newList = new AppointmentList(this.list, this.day);
         const listLength = this.list.length;
 
-        dayStuff.innerHTML = listLength + (listLength === 1 ? ' Appointment' : ' Appointments');
+        dayStuff.innerHTML = (listLength === 0 ? "No" : listLength)
+            + (listLength === 1 ? ' Appointment' : ' Appointments');
         dayModal.childNodes[2].remove();
 
         this.list.sort(this.keysrt('start'));
