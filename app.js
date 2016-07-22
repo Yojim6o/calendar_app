@@ -27,7 +27,7 @@ const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 const today = new Date();
 const todayDate = today.getDate();
-const calContainer = document.getElementById('cal-container')
+const calContainer = document.getElementById('cal-container');
 const modalsContainer = document.getElementById('modals-container');
 
 class Calendar {
@@ -119,7 +119,6 @@ class DayStuff {
     constructor(day) {
         this.day = day;
         this.apptList = [];
-        this.conflicts = [];
     }
 
     generateHTML(node) {
@@ -132,7 +131,12 @@ class DayStuff {
             apptContainer.className = 'appt-container';
             apptContainer.innerHTML = 'No Appointments';
 
-        const apptModal = new DayModal(this.day, this.apptList, this.conflicts);
+        const conflictContainer = document.createElement('div');
+            conflictContainer.id = 'conflict' + this.day;
+            conflictContainer.className = 'conflict-container';
+            conflictContainer.innerHTML = '';
+
+        const apptModal = new DayModal(this.day, this.apptList);
 
         node.onclick = function() {
             const modalID = 'dayModal' + day;
@@ -144,6 +148,7 @@ class DayStuff {
         };
 
         dayContainer.appendChild(apptContainer);
+        dayContainer.appendChild(conflictContainer);
 
         apptModal.generateHTML(modalsContainer);
 
@@ -152,10 +157,9 @@ class DayStuff {
 }
 
 class DayModal {
-    constructor(day, list, conflicts) {
+    constructor(day, list) {
         this.day = day;
         this.apptList = list;
-        this.conflicts = conflicts;
     }
 
     generateHTML(node) {
@@ -176,7 +180,7 @@ class DayModal {
             dayTitle.className = 'day-title';
             dayTitle.innerHTML = 'Appointments';
 
-        const apptList = new AppointmentList(this.apptList, this.day, this.conflicts);
+        const apptList = new AppointmentList(this.apptList, this.day);
 
         dayModal.appendChild(exitDiv);
         dayModal.appendChild(dayTitle);
@@ -187,22 +191,25 @@ class DayModal {
 }
 
 class AppointmentList {
-    constructor(list, day, conflicts) {
+    constructor(list, day) {
         this.apptList = list;
         this.day = day;
-        this.conflicts = conflicts;
+    }
+
+    createAppointment(appt, i, listDiv) {
+        const appointment = new Appointment(appt.name, appt.start, appt.end, this.apptList, this.day, i);
+        appointment.generateHTML(listDiv);
     }
 
     generateHTML(node) {
         const scope = this;
         const listDiv = document.createElement('div');
-        const apptForm = new Appointment(null, null, null, this.apptList, this.day, this.conflicts);
+        const apptForm = new Appointment(null, null, null, this.apptList, this.day);
         const apptListLength = this.apptList.length;
 
         for (var i = 0; i < apptListLength; i++) {
             const appt = this.apptList[i];
-            const appointment = new Appointment(appt.name, appt.start, appt.end, this.apptList, this.day, this.conflicts, i);
-            appointment.generateHTML(listDiv);
+            this.createAppointment(appt, i, listDiv);
         }
 
         apptForm.generateHTML(listDiv);
@@ -211,17 +218,16 @@ class AppointmentList {
 }
 
 class Appointment {
-    constructor(name, start, end, list, day, conflicts, index) {
+    constructor(name, start, end, list, day, index) {
         this.name = name;
         this.start = start;
         this.end = end;
         this.list = list;
         this.day = day;
-        this.conflicts = conflicts;
         this.index = index;
     }
 
-    handleApptSubmit(form, appt) {
+    handleApptSubmit(form, button) {
         const title = form.childNodes[1].value;
         const startTime = Number(form.childNodes[3].value);
         const endTime = Number(form.childNodes[5].value);
@@ -233,11 +239,13 @@ class Appointment {
                 this.list.splice(this.index, 1);
             }
 
-            this.list.push({
-                name: title,
-                start: startTime,
-                end: endTime
-            });
+            if (button !== 'delete') {
+                this.list.push({
+                    name: title,
+                    start: startTime,
+                    end: endTime
+                });
+            }
 
             this.updateList();
         }
@@ -249,13 +257,36 @@ class Appointment {
         }
     }
 
+    checkForConflicts() {
+        const conflictID = 'conflict' + this.day;
+        const conflictDiv = document.getElementById(conflictID);
+        let conflicts = 0;
+        for (var i = 1; i < this.list.length; i++) {
+            if ( (this.list[i-1]["start"] < this.list[i]["end"]) && (this.list[i]["start"] < this.list[i-1]["end"]) ) {
+                this.issueWarning(i);
+                conflicts++;
+            }
+        }
+        if (conflicts) {
+            conflictDiv.innerHTML = 'CONFLICTS';
+        } else {
+            conflictDiv.innerHTML = '';
+        }
+    }
+
+    issueWarning(i) {
+        const modalID = 'dayModal' + this.day;
+        const dayModal = document.getElementById(modalID);
+        dayModal.childNodes[2].childNodes[i-1].className = 'appt-form danger';
+        dayModal.childNodes[2].childNodes[i].className = 'appt-form danger';
+    }
+
     updateList() {
-        const scope = this;
         const dayStuffID = 'dayStuff' + this.day;
         const modalID = 'dayModal' + this.day;
         const dayModal = document.getElementById(modalID);
         const dayStuff = document.getElementById(dayStuffID);
-        const newList = new AppointmentList(this.list, this.day, this.conflicts);
+        const newList = new AppointmentList(this.list, this.day);
         const listLength = this.list.length;
 
         dayStuff.innerHTML = listLength + (listLength === 1 ? ' Appointment' : ' Appointments');
@@ -264,6 +295,7 @@ class Appointment {
         this.list.sort(this.keysrt('start'));
 
         newList.generateHTML(dayModal);
+        this.checkForConflicts();
     }
 
     createTimeOption(node, i) {
@@ -359,6 +391,14 @@ class Appointment {
                 updateButton.name = 'update';
                 updateButton.onclick = function(){scope.handleApptSubmit(this.form)};
             appt.appendChild(updateButton);
+
+            const deleteButton = document.createElement('input');
+                deleteButton.className = 'ib ml10';
+                deleteButton.type = 'button';
+                deleteButton.value = 'Delete';
+                deleteButton.name = 'delete';
+                deleteButton.onclick = function(){scope.handleApptSubmit(this.form, 'delete')};
+            appt.appendChild(deleteButton);
         }
 
         node.appendChild(appt);
