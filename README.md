@@ -11,7 +11,7 @@ Within your terminal, use the following commands:
     > cd calendar_app
 ```
 
-When ready, open calendar_app/index.html within Chrome.
+When ready, open calendar_app/calendar.html within Chrome.
 
 ###How to use###
 
